@@ -32,8 +32,24 @@ print(data[(data["Make"]=="Audi")].Model.count())
 print("Prosjecna emisija marke Audi s motorima od 4 cilindra:")
 print(data[((data["Make"]=="Audi") & (data["Cylinders"]==4))]["CO2 Emissions (g/km)"].mean())
 
-print("Prosjecna emisija vozila po kolicini cilindara:")
+print("Prosjecna emisija vozila po kolicini cilindara, i kolicina tih vozila:")
 print(data.groupby("Cylinders")["CO2 Emissions (g/km)"].mean())
 
-#Z == Benzin
-print(data[(data["Fuel Type"]=="Z")])
+print("Prosjecna gradska potrosnja vozila s dizelom:")
+print(data[(data["Fuel Type"]=="D")]["Fuel Consumption City (L/100km)"].mean())
+print("Median gradska potrosnja vozila s dizelom:")
+print(data[(data["Fuel Type"]=="D")]["Fuel Consumption City (L/100km)"].median())
+print("Prosjecna gradska potrosnja vozila s benzinom:")
+print(data[(data["Fuel Type"]=="X")]["Fuel Consumption City (L/100km)"].mean())
+print("Median gradska potrosnja vozila s benzinom:")
+print(data[(data["Fuel Type"]=="X")]["Fuel Consumption City (L/100km)"].median())
+
+print("Vozilo s 4 cilindra s najvecom potrosnjom:")
+print(data[(data["Cylinders"]==4)].sort_values("Fuel Consumption City (L/100km)").head(1))
+
+print("Količina vozila s ručnim tipom mjenjača:")
+print(data[data["Transmission"].str.startswith("M")].Model.count())
+
+print("Korelacije veličina:")
+print(data.corr(numeric_only=True))
+#Dobiveni rezultati prikazaju utjecaj obujma motora i količine cilindara na potrošnju i emisije CO2 plinova. Kombinirana potrošnja (mpg) je negativna jer se računa suprotno od ostalih.
