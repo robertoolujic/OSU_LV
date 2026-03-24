@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-data = pd.read_csv("C:/Users/robiy/Downloads/OSU_LV-master/OSU_LV-master/LV3/data_C02_emission.csv")
+data = pd.read_csv("data_C02_emission.csv")
 for col in data.select_dtypes(include="object").columns:
     data[col] = data[col].astype("category")
 data["CO2 Emissions (g/km)"].plot(kind="hist", bins=20)
