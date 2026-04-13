@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from sklearn.model_selection import train_test_split
 
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import accuracy_score, classification_report
+
 labels= {0:'Adelie', 1:'Chinstrap', 2:'Gentoo'}
 
 def plot_decision_regions(X, y, classifier, resolution=0.02):
@@ -62,121 +66,65 @@ input_variables = ['bill_length_mm',
 
 X = df[input_variables].to_numpy()
 y = df[output_variable].to_numpy()
-
 # podjela train/test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 123)
-y_train_unique = np.hstack([X_train, y_train])
-print(y_train_unique)
-plt.hist(y_train)
-plt.hist(y_test)
+
+X_train_unique, X_train_unique_idx = np.unique(X_train, axis=0, return_index=True)
+X_test_unique, X_test_unique_idx = np.unique(X_test, axis=0, return_index=True)
+
+plt.hist(y_train, label="Trening podatci")
+plt.hist(y_train[X_train_unique_idx], label="Jedinstveni trening podatci")
+plt.hist(y_test, label="Test podatci")
+plt.hist(y_test[X_test_unique_idx], label="Jedinstveni test podatci")
+plt.legend(loc="lower center")
+plt.show()
+labels_inv= {'Adelie':0,'Chinstrap':1,'Gentoo':2}
+y_train = np.array([labels_inv[val[0]] for val in y_train])
+y_test  = np.array([labels_inv[val[0]] for val in y_test])
+LogRegression_model = LogisticRegression()
+LogRegression_model.fit(X_train,y_train)
+
+print("Parametri logističke regresije:")
+print(LogRegression_model.coef_)
+print("Intercept logističke regresije:")
+print(LogRegression_model.intercept_)
+#Svaka klasa ima svoje atribute, formira se 2x3 matrica
+
+plot_decision_regions(X_train, y_train, classifier=LogRegression_model)
+plt.show()
+#Podatci su podijeljeni u 3 skupine, granica odluke ima neke od trening podataka već u krivim grupama
+
+y_test_p = LogRegression_model.predict(X_test)
+cm = confusion_matrix(y_test, y_test_p)
+print("Matrica zabune: ", cm)
+disp = ConfusionMatrixDisplay(cm)
+disp.plot(cmap=plt.cm.Blues)
+plt.show()
+print("Tocnost:", accuracy_score(y_test, y_test_p))
+print(classification_report(y_test, y_test_p, target_names=["Adelie", "Chinstrap", "Gentoo"]))
+
+extra_inputs = ["bill_depth_mm", "body_mass_g"]
+input_variables = input_variables + [col for col in extra_inputs if col in df.columns]
+print(input_variables)
+X_new = df[input_variables].to_numpy()
+y_new = df[output_variable].to_numpy()
+X_train_new , X_test_new , y_train_new , y_test_new  = train_test_split(X_new , y_new , test_size = 0.2, random_state = 123)
+
+y_train_new = np.array([labels_inv[val[0]] for val in y_train_new])
+y_test_new  = np.array([labels_inv[val[0]] for val in y_test_new])
+LogRegression_model_new = LogisticRegression()
+LogRegression_model_new.fit(X_train_new,y_train_new)
+print("Parametri logističke regresije:")
+print(LogRegression_model_new.coef_)
+print("Intercept logističke regresije:")
+print(LogRegression_model_new.intercept_)
+y_test_p_new = LogRegression_model_new.predict(X_test_new)
+cm_new = confusion_matrix(y_test_new, y_test_p_new)
+print("Matrica zabune: ", cm_new)
+disp_new = ConfusionMatrixDisplay(cm_new)
+disp_new.plot(cmap=plt.cm.Blues)
 plt.show()
 
-#NOVO==================================================
-# broj primjera po klasama (train)
-classes_train, counts_train = np.unique(y_train, return_counts=True)
-
-# broj primjera po klasama (test)
-classes_test, counts_test = np.unique(y_test, return_counts=True)
-
-# pretvori klase u nazive
-labels_names = [labels[int(c)] for c in classes_train]
-
-x = np.arange(len(classes_train))  # pozicije na x osi
-width = 0.35
-
-plt.figure(figsize=(8, 6))
-
-# train stupci
-plt.bar(x - width/2, counts_train, width, label='Train')
-
-# test stupci
-plt.bar(x + width/2, counts_test, width, label='Test')
-
-plt.xticks(x, labels_names)
-plt.xlabel('Vrsta pingvina')
-plt.ylabel('Broj primjera')
-plt.title('Broj primjera po klasama (train vs test)')
-plt.legend()
-plt.grid(axis='y')
-
-
-plt.show()
-
-from sklearn.linear_model import LogisticRegression
-
-# kreiranje modela (multiclass automatski)
-model = LogisticRegression()
-
-# učenje modela
-model.fit(X_train, y_train)
-
-# koeficijenti po klasi
-print("Koeficijenti (theta1, theta2) po klasi:")
-print(model.coef_)
-
-# intercept po klasi
-print("Intercept (theta0) po klasi:")
-print(model.intercept_)
-
-# crtanje decision regions za podatke za ucenje
-plot_decision_regions(X_train, y_train, classifier=model)
-plt.xlabel('bill_length_mm')
-plt.ylabel('flipper_length_mm')
-plt.title('Granice odluke logističke regresije (train)')
-plt.show()
-
-# predikcije
-y_pred = model.predict(X_test)
-
-# indeks dobro/pogrešno klasificiranih
-correct_idx = (y_pred == y_test)
-incorrect_idx = (y_pred != y_test)
-
-plt.figure(figsize=(8,6))
-plt.scatter(X_test[correct_idx, 0], X_test[correct_idx, 1], c='green', label='Točno klasificirani')
-plt.scatter(X_test[incorrect_idx, 0], X_test[incorrect_idx, 1], c='black', label='Pogrešno klasificirani')
-plt.xlabel('bill_length_mm')
-plt.ylabel('flipper_length_mm')
-plt.title('Testni skup - dobro/pogrešno klasificirani (originalni model)')
-plt.legend()
-plt.grid()
-plt.show()
-
-# ispis metrika
-print("Točnost originalnog modela:", accuracy_score(y_test, y_pred))
-print("Classification report originalnog modela:\n", classification_report(y_test, y_pred, target_names=['Adelie','Chinstrap','Gentoo']))
-
-# ------------------------
-# f) Dodavanje dodatnih ulaznih velicina i vizualizacija
-# ------------------------
-additional_inputs = ['bill_depth_mm', 'body_mass_g']  # dodatne značajke
-input_variables_extended = input_variables + [col for col in additional_inputs if col in df.columns]
-
-X_ext = df[input_variables_extended].to_numpy()
-X_train_ext, X_test_ext, y_train_ext, y_test_ext = train_test_split(X_ext, y, test_size=0.2, random_state=123)
-
-# učenje proširenog modela
-model_ext = LogisticRegression(solver='lbfgs', max_iter=200)
-model_ext.fit(X_train_ext, y_train_ext)
-
-# predikcija
-y_pred_ext = model_ext.predict(X_test_ext)
-
-# indeks dobro/pogrešno klasificiranih
-correct_idx_ext = (y_pred_ext == y_test_ext)
-incorrect_idx_ext = (y_pred_ext != y_test_ext)
-
-plt.figure(figsize=(8,6))
-# 2D projekcija prvih dviju značajki
-plt.scatter(X_test_ext[correct_idx_ext, 0], X_test_ext[correct_idx_ext, 1], c='green', label='Točno klasificirani')
-plt.scatter(X_test_ext[incorrect_idx_ext, 0], X_test_ext[incorrect_idx_ext, 1], c='black', label='Pogrešno klasificirani')
-plt.xlabel('bill_length_mm')
-plt.ylabel('flipper_length_mm')
-plt.title('Testni skup - dobro/pogrešno klasificirani (prošireni model)')
-plt.legend()
-plt.grid()
-plt.show()
-
-# ispis metrika proširenog modela
-print("Točnost proširenog modela:", accuracy_score(y_test_ext, y_pred_ext))
-print("Classification report proširenog modela:\n", classification_report(y_test_ext, y_pred_ext, target_names=['Adelie','Chinstrap','Gentoo']))
+print("Tocnost:", accuracy_score(y_test_new, y_test_p_new))
+print(classification_report(y_test_new, y_test_p_new, target_names=["Adelie", "Chinstrap", "Gentoo"]))
+#Značajno poboljšanje u klasificiranju po gotovo svim metrikama
