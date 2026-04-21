@@ -1,0 +1,3 @@
+1. Premalom serijom se sporije uči po epohi ali s boljom procjenom i točnosti, s prevelikom brže ali s većom greškom
+2. Premalom konvergencijom se dobivaju precizniji rezultati ali je treniranje vrlo sporo, dok se prevelikom konvergencijom ubrzava ali nastaje mogućnost overshooting-a
+3.
